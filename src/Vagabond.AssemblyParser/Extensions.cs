@@ -1,14 +1,53 @@
-﻿using Mono.Reflection;
+﻿//
+// Disassembler.cs
+//
+// Author:
+//   Jb Evain (jbevain@novell.com)
+//
+// (C) 2009 - 2010 Novell, Inc. (http://www.novell.com)
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+
+using Mono.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Vagabond.AssemblyParser
+
+namespace Mono.Reflection
 {
-    public static class TypeExtensions
+
+    public static class Extensions
     {
+
+        public static IList<Instruction> GetInstructions(this MethodBase self)
+        {
+            if (self == null)
+                throw new ArgumentNullException("self");
+
+            return MethodBodyReader.GetInstructions(self).AsReadOnly();
+        }
+
         public static readonly BindingFlags AllBindings = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
 
         public static IList<Type> GetTypeReferences(this MethodBase self)
@@ -57,10 +96,10 @@ namespace Vagabond.AssemblyParser
                 .ToList();
 
             types = types.Concat(types.SelectMany(x =>
-                {
-                    return x.GetGenericArguments()
-                    .Concat(x.IsGenericParameter ? x.GetGenericParameterConstraints() : new List<Type>().ToArray());
-                }))
+            {
+                return x.GetGenericArguments()
+                .Concat(x.IsGenericParameter ? x.GetGenericParameterConstraints() : new List<Type>().ToArray());
+            }))
                 .Where(x => !x.IsGenericType)
                 .Distinct()
                 .ToList();
