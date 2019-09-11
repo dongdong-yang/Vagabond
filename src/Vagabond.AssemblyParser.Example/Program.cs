@@ -1,4 +1,6 @@
-﻿using Mono.Reflection;
+﻿using MBrace.Vagabond.AssemblyParser;
+using Mono.Cecil;
+using Mono.Reflection;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -10,11 +12,18 @@ namespace Example
     {
         static void Main(string[] args)
         {
-            PrintReferences(typeof(TestClass));
+            //PrintReferences(typeof(TestClass));
+
+            var definition = AssemblyParser.Parse(typeof(TestClass).Assembly);
+
+            var testMethod = definition.Modules
+             .SelectMany(x => x.Types)
+             .Where(x => x.Name == nameof(TestClass))
+             .SelectMany(x => x.Methods)
+             .FirstOrDefault(x => x.Name == nameof(TestClass.TestAsync));
 
             Console.ReadLine();
         }
-
         static void PrintReferences(Type type)
         {
             type.GetMethods()
@@ -26,6 +35,18 @@ namespace Example
                  .Select(x => x.Operand as MethodInfo)
                  .Where(x => x != null)
                  .ToList();
+
+                 var references = method.GetInstructions()
+                 .Select(x => (x.Operand as MethodReference)?.DeclaringType ?? x.Operand as TypeReference)
+                 .Where(x => x != null)
+                 .ToList();
+
+                 references.ForEach(x =>
+                 {
+                     var reference = x.GetElementType().Resolve();
+
+                 });
+
 
                  Console.WriteLine($"============================================");
                  Console.WriteLine(method);
