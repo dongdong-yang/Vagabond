@@ -33,7 +33,7 @@ using System.Text;
 namespace Mono.Reflection
 {
 
-    sealed class Instruction
+    public sealed class Instruction
     {
 
         int offset;
